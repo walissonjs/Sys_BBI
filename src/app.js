@@ -23,9 +23,11 @@ function parseKML(t) {
     });
     return out
 }
+
 async function readFile(f) { if (/\.kml$/i.test(f.name)) return f.text(); const z = await JSZip.loadAsync(f), e = z.file(/\.kml$/i)[0]; if (!e) throw new Error("Nenhum .kml dentro do KMZ."); return e.async("string") }
 
-/* ---------- mapa de conferência e áreas ---------- */
+
+/* ---------- mapa de conferência e áreas / marcação do perímetro =>draw(fit) ---------- */
 const map = L.map("map").setView([-14, -52], 4);
 L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom: 19, attribution: "Imagem © Esri, Maxar, Earthstar Geographics | Dados © OpenStreetMap" }).addTo(map);
 const layer = L.featureGroup().addTo(map), poiLayer = L.layerGroup().addTo(map); let areas = [];
@@ -34,7 +36,7 @@ const incl = () => areas.filter(a => a.on), total = () => incl().reduce((t, a) =
 function draw(fit) {
     layer.clearLayers(); const ll = r => r.map(p => [p[1], p[0]]);
     incl().filter(a => a.poly).forEach(a => L.polygon([ll(a.poly.ring), ...a.poly.holes.map(ll)], { color: "#ffe600", weight: 3, fillColor: "#ffe600", fillOpacity: .2 }).addTo(layer));
-    if (fit && layer.getLayers().length) map.fitBounds(layer.getBounds(), { padding: [40, 40], maxZoom: 18 });
+    if (fit && layer.getLayers().length) map.fitBounds(layer.getBounds(), { padding: [40, 40], maxZoom: 20 });
     $("m2").innerHTML = fmt(total(), 2) + " <small>m² (total das áreas marcadas)</small>"; $("ha").textContent = fmt(total() / 1e4, 4) + " ha"; $("res").style.display = "block"
 }
 
@@ -57,6 +59,7 @@ const drop = $("drop"), inp = $("file"); drop.onclick = () => inp.click(); inp.o
 ["dragover", "dragenter"].forEach(v => drop.addEventListener(v, e => { e.preventDefault(); drop.classList.add("over") }));
 ["dragleave", "drop"].forEach(v => drop.addEventListener(v, e => { e.preventDefault(); drop.classList.remove("over") }));
 drop.addEventListener("drop", e => e.dataTransfer.files[0] && handle(e.dataTransfer.files[0]));
+
 
 /* ---------- imagem do terreno (satélite + dados do OpenStreetMap) ---------- */
 const TS = 256, mx = (o, z) => (o + 180) / 360 * TS * 2 ** z, my = (a, z) => { const q = Math.sin(rad(a)); return (.5 - Math.log((1 + q) / (1 - q)) / (4 * Math.PI)) * TS * 2 ** z };
@@ -81,8 +84,10 @@ async function renderMap(rs, z, w, h, o) {
             im.src = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`
         }));
     await Promise.all(jobs); g.lineJoin = "round"; g.textAlign = "center";
+    
+    
     // nomes de ruas (OpenStreetMap)
-    const drawn = []; g.font = "bold 22px 'Segoe UI',Arial";
+    const drawn = []; g.font = "bold 22px 'Nirmala UI',Arial";
     (o.streets || []).forEach(wy => {
         const nm = wy.tags && wy.tags.name; if (!nm || !wy.geometry || wy.geometry.length < 2) return;
         const Q = wy.geometry.map(q => [mx(q.lon, z) - ox, my(q.lat, z) - oy]), sg = []; let tot = 0;
@@ -91,8 +96,9 @@ async function renderMap(rs, z, w, h, o) {
         const A = Q[i], B = Q[i + 1], f = sg[i] ? t / sg[i] : 0, x = A[0] + (B[0] - A[0]) * f, y = A[1] + (B[1] - A[1]) * f;
         if (x < 0 || y < 0 || x > w || y > h || drawn.some(d => d.n === nm && Math.hypot(d.x - x, d.y - y) < 300)) return; drawn.push({ n: nm, x, y });
         let ang = Math.atan2(B[1] - A[1], B[0] - A[0]); if (Math.abs(ang) > Math.PI / 2) ang += Math.PI;
-        g.save(); g.translate(x, y); g.rotate(ang); g.lineWidth = 5; g.strokeStyle = "rgba(0,0,0,.85)"; g.strokeText(nm, 0, 7); g.fillStyle = "#fff"; g.fillText(nm, 0, 7); g.restore()
+        g.save(); g.translate(x, y); g.rotate(ang); g.lineWidth = 5; g.strokeStyle = "rgba(0,0,0,.85)"; g.strokeText(nm, 0, 7); g.fillStyle = "#fff"; g.fillText(nm, 0, 6); g.restore()
     });
+
     // perímetro(s)
     rs.forEach(a => {
         const r = a.ring, P = r.map(p => [mx(p[0], z) - ox, my(p[1], z) - oy]); g.beginPath(); P.forEach((p, i) => i ? g.lineTo(...p) : g.moveTo(...p)); g.closePath();
@@ -106,7 +112,7 @@ async function renderMap(rs, z, w, h, o) {
             })
         }
         if (rs.length > 1) {
-            const xs = P.map(p => p[0]), ys = P.map(p => p[1]); g.font = "bold 34px 'Segoe UI',Arial"; g.lineWidth = 7; g.strokeStyle = "#000"; g.fillStyle = "#fff";
+            const xs = P.map(p => p[0]), ys = P.map(p => p[1]); g.font = "bold 20px 'Nirmala UI',Arial"; g.lineWidth = 7; g.strokeStyle = "#000"; g.fillStyle = "#fff";
             const cx = (Math.min(...xs) + Math.max(...xs)) / 2, cy = (Math.min(...ys) + Math.max(...ys)) / 2; g.strokeText(a.name, cx, cy); g.fillText(a.name, cx, cy)
         }
     });
