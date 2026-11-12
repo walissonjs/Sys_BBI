@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gerador de apresentação de terrenos</title>
+    <link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css">
+    <link rel="stylesheet" href="./src/styles.css">
+</head>
+
+<body>
+    <aside>
+        <h1>Gerador de apresentação</h1>
+
+        <h2>1. Arquivo do terreno</h2>
+        <div id="drop">Arraste o KMZ/KML aqui ou clique para escolher</div>
+        <input id="file" type="file" accept=".kmz,.kml" hidden>
+        <div class="res" id="res">
+            <div class="big" id="m2"></div>
+            <div id="ha" style="color:var(--muted)"></div>
+        </div>
+
+        <h2>2. Dados do imóvel</h2>
+        <label style="margin-bottom:4px">Áreas do terreno <small>vêm do arquivo; marque as que entram, edite o nome ou
+                adicione outra</small></label>
+        <div id="areas"></div><button class="alt" id="addArea" style="margin-bottom:12px">+ Adicionar outra
+            área</button>
+        <div class="g">
+            <label>Código do croqui<input data-k="code" placeholder="3189"></label>
+            <label>Bairro<input data-k="bairro"></label>
+            <label>Cidade<input data-k="cidade"></label>
+            <label>UF<input data-k="uf" maxlength="2"></label>
+            <label>Área construída (m²) <small>opcional</small><input data-k="built" inputmode="decimal"></label>
+            <label>Finalidade <small>opcional</small><select data-k="fin">
+                    <option value="">—</option>
+                    <option>Venda</option>
+                    <option>Investimento</option>
+                    <option>Build-to-suit</option>
+                    <option>Locação</option>
+                </select></label>
+            <label>Valor informado como<select data-k="vkind">
+                    <option value="total">Valor total</option>
+                    <option value="m2">Valor por m²</option>
+                </select></label>
+            <label>Valor (R$)<input data-k="valor" inputmode="decimal" placeholder="2.500.000"></label>
+            <label class="f">Nota sob a área<input data-k="fonte" value="Dimensões do Google Earth"></label>
+        </div>
+
+        <h2>3. Pontos de referência <small>shoppings, supermercados, escolas…</small></h2>
+        <div id="refs"></div><button class="alt" id="addRef">+ Adicionar ponto</button>
+        <div style="margin-top:14px"><label>Buscar no entorno (OpenStreetMap)<select id="rad">
+                    <option value="1000">até 1 km</option>
+                    <option value="2000" selected>até 2 km</option>
+                    <option value="3000">até 3 km</option>
+                </select></label><button class="alt" id="busca">Buscar pontos de referência</button>
+            <div id="cands"></div>
+        </div>
+
+        <h2>4. Macrozoneamento <small>opcional</small></h2>
+        <label>Macrozona (se preenchido, entra uma página extra)<input data-k="macro" id="macro"
+                placeholder="Ex.: Macrozona de Ocupação Urbana"></label>
+        <div id="zon" class="g">
+            <label>Zona<input data-k="zona"></label><label>Índice de aproveitamento<input data-k="ia"></label>
+            <label>Taxa de ocupação<input data-k="to"></label><label>Gabarito / altura máx.<input data-k="gab"></label>
+            <label class="f">Recuos<input data-k="recuos"></label><label class="f">Usos permitidos<input
+                    data-k="usos"></label>
+            <label class="f">Observações<textarea data-k="zobs" rows="2"></textarea></label>
+        </div>
+
+        <h2>5. Sua empresa <small>aparece no cabeçalho e na última página</small></h2>
+        <div class="g">
+            <label class="f">Logotipo (PNG ou JPG)<input type="file" id="logoF" accept="image/*"></label>
+            <label class="f">Razão social<input data-k="emp"></label><label class="f">Endereço<input
+                    data-k="end"></label>
+            <label>Telefone<input data-k="tel"></label><label>E-mail<input data-k="mail"></label>
+            <label class="f">CRECI<input data-k="creci" placeholder="CRECI 265J – 15ª REGIÃO"></label>
+            <label class="f"><input type="checkbox" id="lados" checked style="width:auto"> Mostrar medida de cada lado
+                na imagem</label>
+            <label class="f"><input type="checkbox" id="nomes" checked style="width:auto"> Mostrar nomes de ruas e
+                locais na imagem</label>
+        </div>
+
+        <button class="go" id="gen">Gerar apresentação (.pptx)</button>
+        <button class="alt" id="save">Salvar dados (.json)</button><button class="alt" id="load">Abrir dados</button>
+        <input id="jf" type="file" accept=".json" hidden>
+        <div id="msg"></div>
+    </aside>
+
+    <div id="map"></div>
+    <script src="node_modules/leaflet/dist/leaflet.js"></script>
+    <script src="node_modules/jszip/dist/jszip.min.js"></script>
+    <script src="node_modules/pptxgenjs/dist/pptxgen.bundle.js"></script>
+    <script src="./src/app.js"></script>
+</body>
+
+</html>
