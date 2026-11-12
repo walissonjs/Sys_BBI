@@ -1,0 +1,26 @@
+{
+  "name": "sys_bbi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walissonjs/Sys_BBI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/walissonjs/Sys_BBI/issues"
+  },
+  "homepage": "https://github.com/walissonjs/Sys_BBI#readme",
+  "dependencies": {
+    "jszip": "^3.10.2",
+    "leaflet": "^1.9.4",
+    "pptxgenjs": "^4.0.1"
+  }
+}
